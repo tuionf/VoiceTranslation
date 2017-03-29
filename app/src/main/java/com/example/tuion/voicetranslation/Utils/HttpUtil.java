@@ -1,4 +1,4 @@
-package com.example.tuion.voicetranslation;
+package com.example.tuion.voicetranslation.Utils;
 
 import android.os.AsyncTask;
 import android.util.Log;
@@ -106,7 +106,6 @@ public class HttpUtil {
             if (s != null) {
                 onResponseListener.onSuccess(s);
             }
-
         }
     }
 

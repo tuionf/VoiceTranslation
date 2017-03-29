@@ -1,5 +1,8 @@
 package com.example.tuion.voicetranslation;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
@@ -8,8 +11,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.tuion.voicetranslation.Utils.HttpUtil;
+import com.example.tuion.voicetranslation.Utils.JsonParser;
 import com.iflytek.cloud.ErrorCode;
 import com.iflytek.cloud.InitListener;
 import com.iflytek.cloud.RecognizerListener;
@@ -20,7 +26,6 @@ import com.iflytek.cloud.SpeechRecognizer;
 import com.iflytek.cloud.SpeechUtility;
 import com.iflytek.cloud.ui.RecognizerDialog;
 import com.iflytek.cloud.ui.RecognizerDialogListener;
-import com.iflytek.sunflower.FlowerCollector;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,7 +38,7 @@ import java.util.LinkedHashMap;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private EditText result_tv;
+    private TextView result_tv;
     private EditText edit_query;
     private Button btn_query;
     private ImageButton voice;
@@ -47,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // 引擎类型
     private String mEngineType = SpeechConstant.TYPE_CLOUD;
+    private NetworkInfo info;
     private final String path = "http://fanyi.youdao.com/openapi.do?keyfrom=VoiceInstants&key=1540376092&type=data&doctype=json&version=1.1&q=";
 
     @Override
@@ -57,12 +63,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mIat = SpeechRecognizer.createRecognizer(MainActivity.this,mInitListener);
 
-        result_tv = (EditText) findViewById(R.id.result);
+        result_tv = (TextView) findViewById(R.id.result);
         edit_query = (EditText) findViewById(R.id.edit_query);
         btn_query = (Button) findViewById(R.id.btn_query);
         voice = (ImageButton) findViewById(R.id.voice);
         // 使用UI听写功能，请根据sdk文件目录下的notice.txt,放置布局文件和图片资源
         mIatDialog = new RecognizerDialog(MainActivity.this, mInitListener);
+        info = ((ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
 
         btn_query.setOnClickListener(this);
         voice.setOnClickListener(this);
@@ -70,6 +77,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
+        if (!(info != null && info.isConnected())){
+            Toast.makeText(this, "请连接网络后再试！" , Toast.LENGTH_SHORT).show();
+            return;
+        }
         switch (v.getId()){
             case R.id.btn_query:
                 translateQry();
@@ -93,13 +104,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // iat 默认
         //1.创建SpeechRecognizer对象，第二个参数：本地听写时传InitListener
 
-        // 移动数据分析，收集开始听写事件
-        FlowerCollector.onEvent(MainActivity.this, "iat_recognize");
-
         result_tv.setText(null);// 清空显示内容
         mIatResults.clear();
-
-
 
         // 清空参数
         setParam();
@@ -285,17 +291,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onResume() {
-        // 开放统计 移动数据统计分析
-        FlowerCollector.onResume(MainActivity.this);
-        FlowerCollector.onPageStart(TAG);
         super.onResume();
     }
 
     @Override
     protected void onPause() {
-        // 开放统计 移动数据统计分析
-        FlowerCollector.onPageEnd(TAG);
-        FlowerCollector.onPause(MainActivity.this);
         super.onPause();
     }
     /**
