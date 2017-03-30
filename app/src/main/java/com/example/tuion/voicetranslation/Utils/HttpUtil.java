@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 
 /**
  * Created by tuion on 2017/3/23.
@@ -35,6 +36,11 @@ public class HttpUtil {
     public void translate(String path, String input,onResponseListener mOnResponseListener){
         //执行网络请求
         StringBuffer sb  = new StringBuffer();
+        try {
+            input = URLEncoder.encode(input,"UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         sb.append(path).append(input);
         String str = null;
         try {
@@ -42,8 +48,14 @@ public class HttpUtil {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        new http(mOnResponseListener).execute(str);
 
+        new http(mOnResponseListener).execute(str);
+//        try {
+//            str = URLEncoder.encode(str,"UTF-8");
+//            new http(mOnResponseListener).execute(str);
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        }
     }
 
     class http extends AsyncTask<String,Void,String>{
@@ -113,4 +125,6 @@ public class HttpUtil {
         void onSuccess(String result);
         void onFail(String error);
     }
+
+
 }
